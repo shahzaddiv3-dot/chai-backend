@@ -1,0 +1,16 @@
+{
+  "name": "chai-our-backend",
+  "version": "1.0.0",
+  "description": "chai our backend ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "chai",
+    "our",
+    "code"
+  ],
+  "author": "shahzad iqbal",
+  "license": "ISC"
+}
