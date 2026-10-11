@@ -6,7 +6,7 @@ const userSchema = new Schema({
         type: String,
         required: true,
         unique: true,
-        lowecase: true,
+        lowercase: true,
         trim: true,
         index: true
     },
@@ -14,11 +14,11 @@ const userSchema = new Schema({
         type: String,
         required: true,
         unique: true,
-        lowecase: true,
+       lowercase: true,
         trim: true,
       
     },
-       Fullname: {
+       FullName: {
         type: String,
         required: true,
         trim: true,
@@ -30,18 +30,20 @@ required: true,
 
     },
     coverImage:{
-type: string // cloudinary url
+type: String // cloudinary url
     },
-    watchHistory:{
+    watchHistory:[
+    {
         type: Schema.Types.ObjectId,
         ref:"Video"
-    },
+    }
+],
     password : {
-        type: string,
+        type: String,
         required:[true,"password is required"]
     },
 refreshToken :{
-    type: string
+    type: String
 },
 
 },
@@ -49,14 +51,14 @@ refreshToken :{
     timestamps:true
 })
 userSchema.pre("save", async function(next ){
-    if (!this.isModefied ("password")) return next ();
-    this.password = bcrypt.hash(this.password,10)
+    if (!this.isModified ("password")) return next ();
+    this.password   = await  bcrypt.hash(this.password,10)
   next()
 })
 userSchema.methods.isPasswordCorrect = async function(password){
  return await bcrypt.compare(password, this.password)
 }
-userSchema.method.generateAccesToken = function (){
+userSchema.methods.generateAccessToken = function (){
      return  jwt.sign(
         {
       _id:this._id,
@@ -66,13 +68,13 @@ userSchema.method.generateAccesToken = function (){
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
-            expiresIn: procces.env.ACCESS_TOKEN_EXPIRY
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRY
         }
     )
         
     
 }
-userSchema.method.generatRefreshToken = function (){
+userSchema.methods.generateRefreshToken = function (){
      return  jwt.sign(
         {
       _id:this._id,
@@ -80,7 +82,7 @@ userSchema.method.generatRefreshToken = function (){
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
-            expiresIn: procces.env.REFRESH_TOKEN_EXPIRY
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
         }
     )
 }

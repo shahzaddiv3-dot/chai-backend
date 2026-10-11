@@ -8,3 +8,4 @@ class ApiResponse{
         this.succes = statusCode<400
     }
 }
+export {ApiResponse}

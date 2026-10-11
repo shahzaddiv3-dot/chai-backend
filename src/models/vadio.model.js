@@ -1,25 +1,25 @@
 import mongoose,{Schema} from "mongoose"
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2"
-const vadioSchema = new Schema({
+const vadeoSchema = new Schema({
 videoFile :{
-    type: string,
+    type: String,
     required : true // cloudinary url 
 },
 thumbnail:{
-    type:string,
+    type:String,
     required: true,
 },
 title:{
-    type:string,
+    type:String,
     required: true,
 },
-discription:{
-    type:string,
+description:{
+    type:String,
     required: true,
 },
 duration:{
     type:Number,
-    required: true, // cloudinary url 
+    required: true, 
 },
 views:{
     type : Number,
@@ -36,4 +36,4 @@ owner:{
 },{
 timestamps:true
 })
-export const  vadeo = mongoose.model("Vadio", vadioSchema)
+export const  vadeo = mongoose.model("Vadio", vadeoSchema)
