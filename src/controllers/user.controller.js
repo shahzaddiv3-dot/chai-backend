@@ -1,15 +1,15 @@
 
 import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-import { User, User } from "../models/user.model.js";
+import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 const generateAccessAndRefereshTokens = async (userId) => {
     try {
         const user = await User.findById(userId)
-        const accessToken = user.generateteAccessToken()
-        const refreshToken = user.generateRefereshToken()
+       const accessToken = user.generateAccessToken();
+const refreshToken = user.generateRefreshToken();
         user.refreshToken = refreshToken
         await user.save({ validateBeforeSave: false })
         return { accessToken, refreshToken }
@@ -89,10 +89,13 @@ const loginUser = asyncHandler(async (req, res) => {
     // access and refresh token 
     // send cokie 
     const { username, email, password } = req.body
-    if (!username || !email) {
-        throw new ApiError(400, "username and email are required")
-    }
-    const user = await User.findone({
+  if ((!username && !email) || !password) {
+    throw new ApiError(
+        400,
+        "Username or email and password are required"
+    );
+}
+    const user = await User.findOne({
         $or: [{ username }, { email }]
     })
     if (!user) {
@@ -125,7 +128,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
 });
 const logoutUser = asyncHandler(async (req, res) => {
-    User.findByIdAndUpdate(
+  await   User.findByIdAndUpdate(
         req.user._id,
         {
             $set: {
@@ -143,10 +146,13 @@ const logoutUser = asyncHandler(async (req, res) => {
     return res
     .status(200)
     .clearCookie("AccessToken", options)
-    .json(new ApiResponse(200,{},"user logged Out"))
+    .clearCookie("refreshToken", options)
+    .json(
+        new ApiResponse(200, {}, "User logged out successfully")
+    );
 })
 
-const refreshAccessToken = asyncHandler(async()=>{
+const refreshAccessToken = asyncHandler(async(req,res)=>{
  
     const incomingRefreshToken  = req.cookies.refreshToken || req.body.refreshToken
     if (!incomingRefreshToken) {
@@ -154,7 +160,7 @@ const refreshAccessToken = asyncHandler(async()=>{
     }
  try {
      const decodedToken =   jwt.verify(
-           incomingRefershToken,
+           incomingRefreshToken,
            process.env.REFRESH_TOKEN_SECRET
        )
        const user =  await User.findById( decodedToken?._id  )
