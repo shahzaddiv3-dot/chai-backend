@@ -36,4 +36,4 @@ owner:{
 },{
 timestamps:true
 })
-export const  vadeo = mongoose.model("Vadio", vadeoSchema)
+export const  vadeo = mongoose.model("Video", vadeoSchema)
