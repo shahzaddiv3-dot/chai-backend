@@ -1,7 +1,10 @@
 import express from "express";
 import cors from "cors"
 import cookieParser from "cookie-parser";
+import likeRouter from "./routes/like.routes.js";
+import videoRouter from "./routes/video.routes.js";
 const app = express();
+
 
 
 app.use(cors({
@@ -18,4 +21,6 @@ import userRouter from "./routes/user.routes.js";
 
 // Routes declaration
 app.use("/api/v1/users",userRouter)
+app.use("/api/v1/likes", likeRouter)
+app.use("/api/v1/videos", videoRouter);
 export {app}
