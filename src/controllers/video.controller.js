@@ -3,6 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { video } from "../models/video.model.js";
+import mongoose from "mongoose"
 
 
 const publishVideo = asyncHandler(async (req, res) => {
@@ -57,6 +58,10 @@ const getAllVideos = asyncHandler(async (req, res) => {
         isPublished:true,
     });
     const totalPages = Math.ceil(totalVideos / limit);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1 ;
+    const nextPage = hasNextPage ? page + 1 : null;
+    const prevPage = hasPrevPage ? page -1 : null ;
     const videos = await video.find({
         isPublished: true,
     }).skip(skip).limit(limit)
@@ -64,12 +69,80 @@ const getAllVideos = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse
             (200,
-                { videos, currentPage: page, limit,totalVideos,totalPages }
+                { videos, 
+                    currentPage: page, 
+                    limit,
+                    totalVideos,
+                    totalPages,
+                    hasNextPage,
+                     hasPrevPage,
+                     nextPage,
+                     prevPage }
                 , "Videos Fetched Successfully"))
+});
+const getVideoById = asyncHandler (async (req,res)=>{
+const {videoId } = req.params;
+if (!mongoose.isValidObjectId(videoId)) {
+    throw new ApiError(400,"Invalid video Id")
+};
+const videoFound = await video.findById(videoId)
+if (!videoFound) {
+    throw new ApiError(404,"Video not found ")
+};
+return res.status(200)
+.json(new ApiResponse(200,
+  videoFound  ,
+    "Video fetched successfully"
+))
+});
+const videoUpdate = asyncHandler(async(req,res)  =>{
+const {videoId} = req.params;
+if (!mongoose.isValidObjectId (videoId)) {
+    throw new ApiError(400,"INvalid Video Id")
+};
+const videoFound = await video.findOne({
+    _id : videoId,
+    owner : req.user._id
 })
+
+if (!videoFound) {
+    throw new ApiError(404,"Video not found ")
+}
+const {title,description} = req.body;
+const thumbnailLocalPath =  req.file?.path;
+const updateFields = {}
+let thumbnailUploaded ;
+if (title) {
+    updateFields.title = title.trim();
+}
+if (description) {
+    updateFields.description = description.trim();
+}
+
+if (thumbnailLocalPath) {
+     thumbnailUploaded = await uploadOnCloudinary(thumbnailLocalPath)
+     if (!thumbnailUploaded?.url) {
+    throw new ApiError(500,"Error uploading thumbnailto cloudinary")
+}
+}
+
+if (Object.keys(updateFields).length === 0 ) {
+    throw new ApiError(400,"At least one field is required to update")
+}
+if (thumbnailLocalPath) {
+    updateFields.thumbnail = thumbnailUploaded.url;
+}
+Object.assign(videoFound,updateFields)
+await videoFound.save()
+return res.status(200).json(new ApiResponse(200,videoFound,"Video update successfully"))
+})
+
 
 export {
     publishVideo,
     getAllVideos,
+    getVideoById,
+    videoUpdate,
+    
    
 };
