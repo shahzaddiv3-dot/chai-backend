@@ -124,25 +124,103 @@ if (thumbnailLocalPath) {
      if (!thumbnailUploaded?.url) {
     throw new ApiError(500,"Error uploading thumbnailto cloudinary")
 }
+};
+if (thumbnailLocalPath) {
+    updateFields.thumbnail = thumbnailUploaded.url;
 }
 
 if (Object.keys(updateFields).length === 0 ) {
     throw new ApiError(400,"At least one field is required to update")
 }
-if (thumbnailLocalPath) {
-    updateFields.thumbnail = thumbnailUploaded.url;
-}
+
 Object.assign(videoFound,updateFields)
 await videoFound.save()
 return res.status(200).json(new ApiResponse(200,videoFound,"Video update successfully"))
-})
+});
 
+const deleteVideo = asyncHandler(async(req,res) =>{
+    const {videoId} = req.params;
+    if (!mongoose.isValidObjectId(videoId)) {
+        throw new ApiError(400," invalid video Id")
+    }
+    const videoFound = await video.findOne({
+        
+
+        _id : videoId,
+        owner: req.user._id
+
+  })
+  if (!videoFound) {
+    throw new ApiError(404,"video not found")    
+  }
+  await videoFound.deleteOne()
+
+  return res.status(200).json(new ApiResponse(200, videoFound,"Video delete successfully"))
+});
+const togglePublishStatus = asyncHandler(async(req,res)=>{
+    const {videoId} = req.params;
+    if (!mongoose.isValidObjectId(videoId)) {
+        throw new ApiError(400,"Invalid video id ")
+    }
+    const videoFound = await video.findOne(
+        {
+            _id: videoId,
+            owner: req.user._id
+        }
+    )
+if (!videoFound) {
+    throw new ApiError(404,"Video not found -")
+}
+videoFound.isPublished = !videoFound.isPublished;
+ await videoFound.save();
+return res.status(200).json(new ApiResponse(200,videoFound,"video published status update successfully"))
+});
+const incrementVideoViews = asyncHandler(async(req,res) =>{
+    const {videoId} = req.params;
+    if (!mongoose.isValidObjectId(videoId)) {
+        throw new ApiError(400,"Invalid video id ")
+        
+    }
+    const videoFound = await video.findByIdAndUpdate(
+        videoId,
+        {$inc: {views: 1 }},
+    {new : true}
+    )
+
+
+
+if (!videoFound) {
+    throw new ApiError(404,"vIDEO NOT FOUND")
+}
+return res.status(200).json(new ApiResponse(200,videoFound,"Video views incremented successfully"))
+}) 
+
+
+
+// const deleteVideo = asyncHandler(async(req,res)=>{
+//    const {videoId}  = req.params; 
+//     if (!mongoose.isValidObjectId(videoId)) {
+//         throw new ApiError(400,"invalid video id ")
+//     }
+// const videoFound = await video.findOne({
+//     _id :  videoId,
+//     owner: req.user._id
+// })
+// if (!videoFound) {
+//     throw new ApiError(404,"video not found ")
+// }
+//  await videoFound.deleteOne();
+// return res.status(200).json(new ApiResponse(200,"video deelete successfully "))
+// });
 
 export {
     publishVideo,
     getAllVideos,
     getVideoById,
     videoUpdate,
+    deleteVideo,
+    togglePublishStatus,
+    incrementVideoViews
     
    
 };
