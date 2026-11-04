@@ -46,6 +46,9 @@ const publishVideo = asyncHandler(async (req, res) => {
 const getAllVideos = asyncHandler(async (req, res) => {
     const page = Number(req.query.page ?? 1) ;
     const limit = Number(req.query.limit ?? 10);
+    if (limit > 50 ) {
+        throw new ApiError(400,"limit can not be greater than 50 ")
+    }
 
     if ( !Number.isInteger(page) || page <= 0) {
         throw new ApiError(400, "Page must be positive integer ")
@@ -58,13 +61,18 @@ const getAllVideos = asyncHandler(async (req, res) => {
         isPublished:true,
     });
     const totalPages = Math.ceil(totalVideos / limit);
+    if ( totalVideos > 0 && page >  totalPages) {
+        throw new ApiError(400,"this page is not aloud ")
+    }
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1 ;
     const nextPage = hasNextPage ? page + 1 : null;
     const prevPage = hasPrevPage ? page -1 : null ;
     const videos = await video.find({
         isPublished: true,
-    }).skip(skip).limit(limit)
+    })
+    .sort({createdAt: -1 })
+    .skip(skip).limit(limit)
     return res
         .status(200)
         .json(new ApiResponse
@@ -112,10 +120,10 @@ const {title,description} = req.body;
 const thumbnailLocalPath =  req.file?.path;
 const updateFields = {}
 let thumbnailUploaded ;
-if (title) {
+if (title?.trim()) {
     updateFields.title = title.trim();
 }
-if (description) {
+if (description?.trim()) {
     updateFields.description = description.trim();
 }
 
@@ -212,6 +220,7 @@ return res.status(200).json(new ApiResponse(200,videoFound,"Video views incremen
 //  await videoFound.deleteOne();
 // return res.status(200).json(new ApiResponse(200,"video deelete successfully "))
 // });
+// 
 
 export {
     publishVideo,

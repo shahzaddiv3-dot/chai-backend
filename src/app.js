@@ -11,8 +11,8 @@ app.use(cors({
     origin: process.env.CORS_ORIGIN,
     credentials: true
 }))
-app.use(express.json({limit:"16kb"}))
-app.use(express.urlencoded({extended:true,limit:'16kb'}))
+app.use(express.json({ limit: "16kb" }))
+app.use(express.urlencoded({ extended: true, limit: '16kb' }))
 app.use(express.static("public"))
 app.use(cookieParser())
 
@@ -20,7 +20,22 @@ app.use(cookieParser())
 import userRouter from "./routes/user.routes.js";
 
 // Routes declaration
-app.use("/api/v1/users",userRouter)
+app.use("/api/v1/users", userRouter)
 app.use("/api/v1/likes", likeRouter)
 app.use("/api/v1/videos", videoRouter);
-export {app}
+
+app.use((err, req, res, next) => {
+    const statusCode = err.statusCode || 500;
+    const stack = process.env.NODE_ENV === "development" ? err.stack:undefined;
+    const message = err.message || "internal server Error"
+    res.status(statusCode).json(
+        {
+            statusCode,
+            message,
+            success: false,
+            errors: err.error,
+            stack
+        }
+    )
+})
+export { app }
