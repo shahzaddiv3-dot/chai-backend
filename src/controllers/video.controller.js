@@ -9,8 +9,8 @@ import mongoose from "mongoose"
 const publishVideo = asyncHandler(async (req, res) => {
     const title = req.body.title?.trim();
     const description = req.body.description?.trim();
-    const videoLocalPath = req.files?.videoFile?.[0].path;
-    const thumbnailLocalPath = req.files?.thumbnail?.[0].path;
+    const videoLocalPath = req.files?.videoFile?.[0]?.path;
+    const thumbnailLocalPath = req.files?.thumbnail?.[0]?.path;
 
     if (!title || !description) {
         throw new ApiError(400, "Title and description are required")
@@ -93,7 +93,15 @@ const {videoId } = req.params;
 if (!mongoose.isValidObjectId(videoId)) {
     throw new ApiError(400,"Invalid video Id")
 };
-const videoFound = await video.findById(videoId)
+const videoFound = await video.findOne(
+    {
+        _id: videoId,
+        $or:[
+            {isPublished: true},
+           { owner: req.user._id}
+        ]
+    }
+)
 if (!videoFound) {
     throw new ApiError(404,"Video not found ")
 };
@@ -120,10 +128,23 @@ const {title,description} = req.body;
 const thumbnailLocalPath =  req.file?.path;
 const updateFields = {}
 let thumbnailUploaded ;
-if (title?.trim()) {
-    updateFields.title = title.trim();
+if (title !== undefined) {
+  if (typeof title !== "string") {
+    throw new ApiError(400,"TITLE MUST BE STRING ")
+  }
+  if (!title.trim()) {
+    throw new ApiError(400,"title can not be empty ")
+  }
+  updateFields.title = title.trim()
 }
-if (description?.trim()) {
+if (description !== undefined) {
+
+    if (typeof description !== "string") {
+        throw new ApiError(400,"description must be string")
+    }
+    if (!description.trim()) {
+        throw new ApiError(400,"description can not be empty ")
+    }
     updateFields.description = description.trim();
 }
 
@@ -189,8 +210,9 @@ const incrementVideoViews = asyncHandler(async(req,res) =>{
         throw new ApiError(400,"Invalid video id ")
         
     }
-    const videoFound = await video.findByIdAndUpdate(
-        videoId,
+    const videoFound = await video.findOneAndUpdate({
+        _id : videoId,
+        isPublished: true},
         {$inc: {views: 1 }},
     {new : true}
     )
