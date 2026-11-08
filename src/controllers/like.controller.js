@@ -3,11 +3,11 @@ import asyncHandler from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { video } from "../models/video.model.js";
-import { Like } from "../models/like.model.js";
+import { Like, } from "../models/like.model.js";
 import { Comment } from "../models/comment.model.js";
 import { Tweet } from "../models/tweet.model.js"
 
-const toggeleVideoLike = asyncHandler(async (req, res) => {
+const toggleVideoLike = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
     if (!mongoose.isValidObjectId(videoId)) {
         throw new ApiError(400, "invalid video ID")
@@ -34,7 +34,7 @@ const toggeleVideoLike = asyncHandler(async (req, res) => {
 
 });
 
-const toggelComentLike = asyncHandler(async (req, res) => {
+const toggleComentLike = asyncHandler(async (req, res) => {
     const { commentId } = req.params;
     if (!mongoose.isValidObjectId(commentId)) {
         throw new ApiError(400, "invalid comment Id");
@@ -90,18 +90,55 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
         likedBy: req.user._id
     });
     res.status(200).json(new ApiResponse(
-        200, 
-        { isLiked: true }, 
+        200,
+        { isLiked: true },
         "Tweeet liked succesfully"))
-
-
-
-
 });
+const getlikedVideos = asyncHandler(async (req, res) => {
+
+
+
+    const likedVideo = await Like.aggregate([
+        {
+            $match: {
+
+                likedBy: req.user._id,
+                video:{$ne:null}
+            }
+
+        },
+        {
+            $lookup: {
+                from: "videos",
+                localField: "video",
+                foreignField: "_id",
+                as: "likedVideo"
+            },
+       
+
+            
+        },
+        {
+            $unwind: "$likedVideo"
+        },
+      {
+        $project:{
+            likedVideo: 1,
+            
+
+        }
+      },
+
+    ]);
+          res.status(200).json(new ApiResponse(200, likedVideo,"likedVideo fetched successfully"))
+})
+
 
 
 export {
-    toggeleVideoLike,
-    toggelComentLike,
-    toggleTweetLike
+    toggleVideoLike,
+    toggleComentLike,
+    toggleTweetLike,
+    getlikedVideos,
+   
 }

@@ -3,6 +3,7 @@ import cors from "cors"
 import cookieParser from "cookie-parser";
 import likeRouter from "./routes/like.routes.js";
 import videoRouter from "./routes/video.routes.js";
+import commentRouter from "./routes/comment.routes.js";
 const app = express();
 
 
@@ -20,9 +21,10 @@ app.use(cookieParser())
 import userRouter from "./routes/user.routes.js";
 
 // Routes declaration
-app.use("/api/v1/users", userRouter)
-app.use("/api/v1/likes", likeRouter)
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/likes", likeRouter);
 app.use("/api/v1/videos", videoRouter);
+app.use("/api/v1/comments",commentRouter);
 
 app.use((err, req, res, next) => {
     const statusCode = err.statusCode || 500;
