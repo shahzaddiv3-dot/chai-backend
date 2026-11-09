@@ -38,11 +38,53 @@ const videoFound = await video.findById(videoId)
 if (!videoFound) {
     throw new ApiError(404,"Video not found")
 }
-    const comments = await Comment.find({video :videoId}).populate("owner","username vatar FullName");  
+    const comments = await Comment.find({video :videoId}).populate("owner","username avatar FullName");  
     return res.status(200).json( new ApiResponse(200,comments,"  Video Comment fetched successfully"))
+
+});
+const updateComment = asyncHandler (async(req,res) =>{
+const {commentId} = req.params;
+const {content} = req.body;
+if (!isValidObjectId(commentId)) {
+    throw new ApiError(400,"Invalid Comment Id")
+}
+const commentFound = await Comment.findOne(
+    {
+        _id: commentId,
+        owner:req.user._id
+    }
+)
+if (!commentFound) {
+    throw new ApiError(404,"Comment are not found")
+}
+if ( typeof content !== "string" || content.trim().length === 0 ) {
+    throw new ApiError(400,"Comment content is required")
+}
+commentFound.content = content.trim();
+await commentFound.save();
+return res.status(200).json(new ApiResponse(200,commentFound,"comment update successfuly"))
+
+});
+const deleteComment = asyncHandler(async(req,res)=>{
+const {commentId} = req.params;
+if (!isValidObjectId(commentId)) {
+    throw new ApiError(400,"Invalid comment id ")
+    
+}
+const commentFound = await Comment.findOne({
+    _id: commentId,
+    owner: req.user._id
+})
+if (!commentFound) {
+    throw new ApiError(404,"Comment are not found")
+}
+ await commentFound.deleteOne();
+ return res.status(200).json(new ApiResponse(200,null,"Comment delete successfully"))
 
 })
 export{
     addComment,
-    getVideoComment
+    getVideoComment,
+    updateComment,
+    deleteComment
 }
