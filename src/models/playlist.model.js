@@ -4,12 +4,12 @@ import mongoose, { Schema } from "mongoose"
 const playlistSchema = new Schema(
     {
         name: {
-            type: string,
+            type: String,
             required: true,
 
         },
         description: {
-            type: string,
+            type: String,
             required: true,
 
         },
@@ -21,7 +21,8 @@ const playlistSchema = new Schema(
         ],
         owner:{
 type: Schema.Types.ObjectId,
-ref: "Usser"
+ref: "User",
+required: true
         }
     }, {
     timestamps: true
