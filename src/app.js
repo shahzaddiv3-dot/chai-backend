@@ -5,7 +5,7 @@ import likeRouter from "./routes/like.routes.js";
 import videoRouter from "./routes/video.routes.js";
 import commentRouter from "./routes/comment.routes.js";
 import tweetRouter from "./routes/tweet.routes.js";
-import playlistRouter from "./routes/playlist.routes.js";
+import playlistRouter from "./routes/playList.routes.js"
 const app = express();
 
 
